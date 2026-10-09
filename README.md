@@ -34,13 +34,19 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-6. Run the Flask app.
+6. Run the baseline test suite from the repository root.
+
+```bash
+python -m pytest
+```
+
+7. Run the Flask app.
 
 ```bash
 python app.py
 ```
 
-7. Open http://127.0.0.1:5000 in your browser.
+8. Open http://127.0.0.1:5000 in your browser.
 
 ## Project Instructions
 
