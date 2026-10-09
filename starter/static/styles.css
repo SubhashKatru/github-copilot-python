@@ -1,6 +1,55 @@
+:root {
+    --page-bg: #f4f7fb;
+    --page-text: #1f2937;
+    --board-bg: #ffffff;
+    --board-border: #1f2937;
+    --grid-line: #475569;
+    --subgrid-a: #f8fafc;
+    --subgrid-b: #dfeaf9;
+    --cell-bg: #ffffff;
+    --cell-text: #111827;
+    --cell-focus-ring: #1d4ed8;
+    --cell-focus-bg: #dbeafe;
+    --cell-prefilled-bg: #e2e8f0;
+    --cell-prefilled-text: #111827;
+    --cell-error-bg: #fee2e2;
+    --cell-error-border: #b91c1c;
+    --cell-error-text: #7f1d1d;
+    --button-bg: #1976d2;
+    --button-hover-bg: #1565c0;
+    --button-text: #ffffff;
+    --message-text: #b91c1c;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --page-bg: #0f172a;
+        --page-text: #e2e8f0;
+        --board-bg: #111827;
+        --board-border: #e2e8f0;
+        --grid-line: #cbd5e1;
+        --subgrid-a: #1e293b;
+        --subgrid-b: #334155;
+        --cell-bg: #0f172a;
+        --cell-text: #f8fafc;
+        --cell-focus-ring: #93c5fd;
+        --cell-focus-bg: #1d4ed8;
+        --cell-prefilled-bg: #374151;
+        --cell-prefilled-text: #f8fafc;
+        --cell-error-bg: #7f1d1d;
+        --cell-error-border: #fca5a5;
+        --cell-error-text: #fee2e2;
+        --button-bg: #60a5fa;
+        --button-hover-bg: #3b82f6;
+        --button-text: #0f172a;
+        --message-text: #fca5a5;
+    }
+}
+
 body {
     font-family: Arial, sans-serif;
-    background: #f4f4f4;
+    background: var(--page-bg);
+    color: var(--page-text);
     text-align: center;
     margin: 0;
     padding: 0;
@@ -8,15 +57,16 @@ body {
 
 h1 {
     margin-top: 30px;
-    color: #333;
+    color: var(--page-text);
 }
 
 #sudoku-board {
     display: inline-block;
     margin: 30px auto;
-    border: 4px solid #333;
-    background: #fff;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    border: 4px solid var(--board-border);
+    background: var(--board-bg);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.16);
+    box-sizing: border-box;
 }
 
 .sudoku-row {
@@ -24,38 +74,59 @@ h1 {
 }
 
 .sudoku-cell {
+    box-sizing: border-box;
     width: 40px;
     height: 40px;
-    border: 1px solid #bbb;
+    border: 1px solid var(--grid-line);
     text-align: center;
     font-size: 20px;
+    line-height: 38px;
+    padding: 0;
+    margin: 0;
     outline: none;
-    background: #fafafa;
-    transition: background 0.2s;
+    background: var(--cell-bg);
+    color: var(--cell-text);
+    transition: background 0.2s ease, box-shadow 0.2s ease;
+}
+
+.sudoku-row:nth-child(-n + 3) .sudoku-cell:nth-child(-n + 3),
+.sudoku-row:nth-child(-n + 3) .sudoku-cell:nth-child(n + 7):nth-child(-n + 9),
+.sudoku-row:nth-child(n + 4):nth-child(-n + 6) .sudoku-cell:nth-child(n + 4):nth-child(-n + 6),
+.sudoku-row:nth-child(n + 7):nth-child(-n + 9) .sudoku-cell:nth-child(-n + 3),
+.sudoku-row:nth-child(n + 7):nth-child(-n + 9) .sudoku-cell:nth-child(n + 7):nth-child(-n + 9) {
+    background: var(--subgrid-a);
+}
+
+.sudoku-row:nth-child(-n + 3) .sudoku-cell:nth-child(n + 4):nth-child(-n + 6),
+.sudoku-row:nth-child(n + 4):nth-child(-n + 6) .sudoku-cell:nth-child(-n + 3),
+.sudoku-row:nth-child(n + 4):nth-child(-n + 6) .sudoku-cell:nth-child(n + 7):nth-child(-n + 9),
+.sudoku-row:nth-child(n + 7):nth-child(-n + 9) .sudoku-cell:nth-child(n + 4):nth-child(-n + 6) {
+    background: var(--subgrid-b);
 }
 
 .sudoku-cell:focus {
-    background: #e0f7fa;
+    background: var(--cell-focus-bg);
+    box-shadow: inset 0 0 0 2px var(--cell-focus-ring);
 }
 
 .sudoku-cell.prefilled {
-    background: #e0e0e0;
+    background: var(--cell-prefilled-bg);
     font-weight: bold;
-    color: #333;
+    color: var(--cell-prefilled-text);
 }
 
 .sudoku-cell.incorrect {
-    background: #ffcdd2;
+    background: var(--cell-error-bg);
+    color: var(--cell-error-text);
+    box-shadow: inset 0 0 0 2px var(--cell-error-border);
 }
 
-.sudoku-cell:nth-child(3),
-.sudoku-cell:nth-child(6) {
-    border-right: 3px solid #333;
+.sudoku-cell:nth-child(3n) {
+    border-right: 3px solid var(--grid-line);
 }
 
-.sudoku-row:nth-child(3) .sudoku-cell,
-.sudoku-row:nth-child(6) .sudoku-cell {
-    border-bottom: 3px solid #333;
+.sudoku-row:nth-child(3n) .sudoku-cell {
+    border-bottom: 3px solid var(--grid-line);
 }
 
 .controls {
@@ -73,15 +144,15 @@ button {
     margin: 0 8px;
     font-size: 16px;
     border: none;
-    background: #1976d2;
-    color: #fff;
+    background: var(--button-bg);
+    color: var(--button-text);
     border-radius: 4px;
     cursor: pointer;
     transition: background 0.2s;
 }
 
 button:hover {
-    background: #1565c0;
+    background: var(--button-hover-bg);
 }
 
 #difficulty {
@@ -92,7 +163,7 @@ button:hover {
 #message {
     flex-basis: 100%;
     font-size: 16px;
-    color: #d32f2f;
+    color: var(--message-text);
 }
 
 #leaderboard {
@@ -109,7 +180,7 @@ button:hover {
 }
 
 .leaderboard-heading h2 {
-    color: #333;
+    color: var(--page-text);
 }
 
 .table-scroll {
@@ -119,18 +190,18 @@ button:hover {
 table {
     width: 100%;
     border-collapse: collapse;
-    background: #fff;
+    background: var(--board-bg);
 }
 
 th,
 td {
     padding: 10px;
-    border: 1px solid #bbb;
+    border: 1px solid var(--grid-line);
     text-align: left;
 }
 
 th {
-    background: #e0e0e0;
+    background: var(--subgrid-b);
 }
 
 dialog {

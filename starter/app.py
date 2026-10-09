@@ -1,39 +1,33 @@
-from flask import Flask, render_template, jsonify, request
-import sudoku_logic
+# Evaluated Copilot suggestion: Copilot recommended a server-side session-backed game store with game IDs.
+# Rejected: Kept the Flask backend stateless and delegated all active board state and persistence to client-side localStorage.
 
-app = Flask(__name__)
+"""Flask application factory for the Sudoku game."""
 
-# Keep a simple in-memory store for current puzzle and solution
-CURRENT = {
-    'puzzle': None,
-    'solution': None
-}
+from typing import Any
 
-@app.route('/')
-def index():
-    return render_template('index.html')
+from flask import Flask
 
-@app.route('/new')
-def new_game():
-    clues = int(request.args.get('clues', 35))
-    puzzle, solution = sudoku_logic.generate_puzzle(clues)
-    CURRENT['puzzle'] = puzzle
-    CURRENT['solution'] = solution
-    return jsonify({'puzzle': puzzle})
+if __package__:
+    from . import sudoku_logic
+    from .routes.api import api
+else:
+    import sudoku_logic
+    from routes.api import api
 
-@app.route('/check', methods=['POST'])
-def check_solution():
-    data = request.json
-    board = data.get('board')
-    solution = CURRENT.get('solution')
-    if solution is None:
-        return jsonify({'error': 'No game in progress'}), 400
-    incorrect = []
-    for i in range(sudoku_logic.SIZE):
-        for j in range(sudoku_logic.SIZE):
-            if board[i][j] != solution[i][j]:
-                incorrect.append([i, j])
-    return jsonify({'incorrect': incorrect})
+CURRENT: dict[str, Any] = {"puzzle": None, "solution": None}
+
+
+def create_app(game_state: dict[str, Any] | None = None) -> Flask:
+    """Create and configure the Flask Sudoku application."""
+    application = Flask(__name__)
+    application.extensions["sudoku_current"] = (
+        game_state if game_state is not None else {"puzzle": None, "solution": None}
+    )
+    application.register_blueprint(api)
+    return application
+
+
+app = create_app(CURRENT)
 
 if __name__ == '__main__':
     app.run(debug=True)
