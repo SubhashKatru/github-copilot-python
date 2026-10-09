@@ -95,3 +95,26 @@ def test_check_route_returns_an_empty_list_for_a_correct_board(client):
 
     assert response.status_code == 200
     assert response.get_json() == {"incorrect": []}
+
+
+def test_hint_route_returns_one_correct_empty_cell(client):
+    puzzle = make_board()
+    puzzle[0][0] = 0
+    app.CURRENT.update(puzzle=puzzle, solution=make_board())
+
+    response = client.post("/hint", json={"board": puzzle})
+
+    assert response.status_code == 200
+    hint = response.get_json()
+    assert hint == {"row": 0, "col": 0, "value": make_board()[0][0]}
+
+
+def test_check_route_rejects_malformed_boards(client):
+    app.CURRENT["solution"] = make_board()
+
+    response = client.post("/check", json={"board": [[1, 2]]})
+
+    assert response.status_code == 400
+    assert response.get_json() == {
+        "error": "Board must be a 9x9 grid of integers from 0 to 9"
+    }

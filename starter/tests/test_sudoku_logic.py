@@ -1,4 +1,21 @@
 import sudoku_logic
+from sudoku import generator
+from sudoku.solver import count_solutions
+
+
+def completed_board():
+    """Return a known valid completed Sudoku board."""
+    return [
+        [5, 3, 4, 6, 7, 8, 9, 1, 2],
+        [6, 7, 2, 1, 9, 5, 3, 4, 8],
+        [1, 9, 8, 3, 4, 2, 5, 6, 7],
+        [8, 5, 9, 7, 6, 1, 4, 2, 3],
+        [4, 2, 6, 8, 5, 3, 7, 9, 1],
+        [7, 1, 3, 9, 2, 4, 8, 5, 6],
+        [9, 6, 1, 5, 3, 7, 2, 8, 4],
+        [2, 8, 7, 4, 1, 9, 6, 3, 5],
+        [3, 4, 5, 2, 8, 6, 1, 7, 9],
+    ]
 
 
 def test_deep_copy_creates_an_independent_board():
@@ -67,12 +84,44 @@ def test_fill_board_produces_a_complete_valid_solution():
             assert box_values == expected_values
 
 
+def test_count_solutions_distinguishes_unique_and_multiple_solutions():
+    assert count_solutions(completed_board()) == 1
+    assert count_solutions(sudoku_logic.create_empty_board(), limit=2) == 2
+
+
+def test_count_solutions_rejects_conflicting_givens():
+    board = completed_board()
+    board[0][0] = board[0][1]
+
+    assert count_solutions(board) == 0
+
+
 def test_remove_cells_leaves_the_requested_number_of_clues():
-    board = [[1 for _ in range(sudoku_logic.SIZE)] for _ in range(sudoku_logic.SIZE)]
+    board = completed_board()
 
     sudoku_logic.remove_cells(board, clues=35)
 
     assert sum(value != sudoku_logic.EMPTY for row in board for value in row) == 35
+    assert count_solutions(board) == 1
+
+
+def test_remove_cells_restores_a_removal_that_breaks_uniqueness(monkeypatch):
+    board = completed_board()
+    calls = 0
+
+    def count_with_first_removal_rejected(candidate, limit=2):
+        nonlocal calls
+        calls += 1
+        return 2 if candidate[0][0] == sudoku_logic.EMPTY else 1
+
+    monkeypatch.setattr(generator, "count_solutions", count_with_first_removal_rejected)
+    monkeypatch.setattr(generator.random, "shuffle", lambda positions: None)
+
+    sudoku_logic.remove_cells(board, clues=80)
+
+    assert board[0][0] != sudoku_logic.EMPTY
+    assert board[0][1] == sudoku_logic.EMPTY
+    assert calls == 2
 
 
 def test_generate_puzzle_returns_a_puzzle_and_its_complete_solution():
