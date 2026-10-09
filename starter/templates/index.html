@@ -10,9 +10,50 @@
   <div id="sudoku-board"></div>
   <div class="controls">
     <button id="new-game">New Game</button>
+    <button id="get-hint">Hint</button>
     <button id="check-solution">Check Solution</button>
+    <label for="difficulty">Difficulty</label>
+    <select id="difficulty" name="difficulty">
+      <option value="Easy">Easy</option>
+      <option value="Medium" selected>Medium</option>
+      <option value="Hard">Hard</option>
+    </select>
+    <span id="hint-count">Hints used: 0</span>
+    <span id="timer" aria-live="off">Time: <span id="elapsed-time">00:00</span></span>
     <span id="message"></span>
   </div>
+  <section id="leaderboard" aria-labelledby="leaderboard-title">
+    <div class="leaderboard-heading">
+      <h2 id="leaderboard-title">Top 10 Fastest Times</h2>
+      <button id="clear-scores" type="button">Clear Scores</button>
+    </div>
+    <p id="leaderboard-message" role="status"></p>
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th scope="col">Rank</th>
+            <th scope="col">Player</th>
+            <th scope="col">Time</th>
+            <th scope="col">Difficulty</th>
+            <th scope="col">Hints</th>
+          </tr>
+        </thead>
+        <tbody id="leaderboard-scores"></tbody>
+      </table>
+    </div>
+  </section>
+  <dialog id="score-dialog" aria-labelledby="score-dialog-title">
+    <form id="score-form">
+      <h2 id="score-dialog-title">Puzzle complete!</h2>
+      <p>Your time: <strong id="completion-time">00:00</strong></p>
+      <label for="player-name">Player name</label>
+      <input id="player-name" name="player-name" type="text" maxlength="30" required autocomplete="name">
+      <div class="dialog-actions">
+        <button type="submit">Save Score</button>
+      </div>
+    </form>
+  </dialog>
   <script src="/static/main.js"></script>
 </body>
 </html>

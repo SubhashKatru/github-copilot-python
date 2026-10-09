@@ -60,6 +60,12 @@ h1 {
 
 .controls {
     margin: 20px auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 0 12px;
 }
 
 button {
@@ -78,8 +84,104 @@ button:hover {
     background: #1565c0;
 }
 
+#difficulty {
+    padding: 7px;
+    font-size: 16px;
+}
+
 #message {
-    margin-left: 20px;
+    flex-basis: 100%;
     font-size: 16px;
     color: #d32f2f;
+}
+
+#leaderboard {
+    width: min(700px, calc(100% - 32px));
+    margin: 32px auto;
+    text-align: left;
+}
+
+.leaderboard-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.leaderboard-heading h2 {
+    color: #333;
+}
+
+.table-scroll {
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #fff;
+}
+
+th,
+td {
+    padding: 10px;
+    border: 1px solid #bbb;
+    text-align: left;
+}
+
+th {
+    background: #e0e0e0;
+}
+
+dialog {
+    width: min(400px, calc(100% - 48px));
+    border: 0;
+    border-radius: 8px;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.25);
+}
+
+dialog::backdrop {
+    background: rgba(0, 0, 0, 0.5);
+}
+
+#score-form {
+    display: grid;
+    gap: 12px;
+}
+
+#score-form h2 {
+    margin: 0;
+}
+
+#player-name {
+    box-sizing: border-box;
+    width: 100%;
+    padding: 9px;
+    font-size: 16px;
+}
+
+.dialog-actions {
+    display: flex;
+    justify-content: flex-end;
+}
+
+@media (max-width: 520px) {
+    .controls {
+        flex-direction: column;
+    }
+
+    .controls button {
+        width: min(260px, 100%);
+        margin: 0;
+    }
+
+    #leaderboard {
+        width: calc(100% - 24px);
+    }
+
+    th,
+    td {
+        padding: 8px 6px;
+        font-size: 14px;
+    }
 }
