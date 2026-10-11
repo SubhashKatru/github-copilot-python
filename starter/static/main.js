@@ -88,6 +88,104 @@ function showLeaderboardError(error) {
   message.innerText = `Unable to update leaderboard: ${error.message}`;
 }
 
+/**
+ * Find every filled cell that repeats a digit in its row, column or 3x3 box.
+ * Pure function so it can be unit-tested without a browser.
+ * @param {number[][]} board 9x9 grid, 0 = empty.
+ * @returns {Set<number>} flat indexes (row * 9 + col) of conflicting cells.
+ */
+function findConflicts(board) {
+  const conflicts = new Set();
+  const groups = [];
+  for (let i = 0; i < SIZE; i++) {
+    const row = [];
+    const col = [];
+    for (let j = 0; j < SIZE; j++) {
+      row.push([i, j]);
+      col.push([j, i]);
+    }
+    groups.push(row, col);
+  }
+  for (let boxRow = 0; boxRow < SIZE; boxRow += 3) {
+    for (let boxCol = 0; boxCol < SIZE; boxCol += 3) {
+      const box = [];
+      for (let i = 0; i < 3; i++) {
+        for (let j = 0; j < 3; j++) box.push([boxRow + i, boxCol + j]);
+      }
+      groups.push(box);
+    }
+  }
+  for (const group of groups) {
+    const seen = new Map();
+    for (const [r, c] of group) {
+      const value = board[r][c];
+      if (!value) continue;
+      if (!seen.has(value)) seen.set(value, []);
+      seen.get(value).push(r * SIZE + c);
+    }
+    for (const indexes of seen.values()) {
+      if (indexes.length > 1) indexes.forEach((index) => conflicts.add(index));
+    }
+  }
+  return conflicts;
+}
+
+function getInputs() {
+  return document.getElementById('sudoku-board').getElementsByTagName('input');
+}
+
+/** Re-apply the .conflict class to every cell that breaks a Sudoku rule. */
+function updateConflicts() {
+  const inputs = getInputs();
+  const conflicts = findConflicts(readBoard(inputs));
+  for (let idx = 0; idx < inputs.length; idx++) {
+    const isConflict = conflicts.has(idx);
+    inputs[idx].classList.toggle('conflict', isConflict);
+    if (isConflict) {
+      inputs[idx].setAttribute('aria-invalid', 'true');
+    } else {
+      inputs[idx].removeAttribute('aria-invalid');
+    }
+  }
+  return conflicts;
+}
+
+/** When the board is full and conflict-free, run the normal solution check. */
+function checkIfComplete() {
+  if (gameCompleted) return;
+  const inputs = getInputs();
+  const board = readBoard(inputs);
+  const isFull = board.every((row) => row.every((value) => value !== 0));
+  if (isFull && updateConflicts().size === 0) checkSolution();
+}
+
+function applyTheme(theme) {
+  document.documentElement.setAttribute('data-theme', theme);
+  const toggle = document.getElementById('theme-toggle');
+  const isDark = theme === 'dark';
+  toggle.textContent = isDark ? 'Light mode' : 'Dark mode';
+  toggle.setAttribute('aria-pressed', String(isDark));
+}
+
+function initTheme() {
+  let theme = null;
+  try {
+    theme = localStorage.getItem('sudokuTheme');
+  } catch (error) { /* storage unavailable */ }
+  if (theme !== 'dark' && theme !== 'light') {
+    theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  }
+  applyTheme(theme);
+}
+
+function toggleTheme() {
+  const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+  applyTheme(next);
+  try {
+    localStorage.setItem('sudokuTheme', next);
+  } catch (error) { /* ignore: theme just will not persist */ }
+}
+
 function createBoardElement() {
   const boardDiv = document.getElementById('sudoku-board');
   boardDiv.innerHTML = '';
@@ -104,6 +202,9 @@ function createBoardElement() {
       input.addEventListener('input', (e) => {
         const val = e.target.value.replace(/[^1-9]/g, '');
         e.target.value = val;
+        e.target.classList.remove('incorrect');
+        updateConflicts();
+        checkIfComplete();
       });
       rowDiv.appendChild(input);
     }
@@ -182,10 +283,13 @@ async function getHint() {
   const input = inputs[data.row * SIZE + data.col];
   input.value = data.value;
   input.disabled = true;
-  input.className = 'sudoku-cell prefilled';
+  input.classList.remove('incorrect', 'conflict');
+  input.classList.add('prefilled', 'hint');
   hintsUsed += 1;
   document.getElementById('hint-count').innerText = `Hints used: ${hintsUsed}`;
   msg.innerText = '';
+  updateConflicts();
+  checkIfComplete();
 }
 
 async function checkSolution() {
@@ -204,30 +308,39 @@ async function checkSolution() {
     msg.innerText = data.error;
     return;
   }
-  const incorrect = new Set(data.incorrect.map(x => x[0]*SIZE + x[1]));
+  const hasEmptyCells = board.some((row) => row.includes(0));
+  // The server also lists empty cells; only filled-in wrong digits count as mistakes.
+  const wrongEntries = new Set(
+    data.incorrect
+      .filter(([row, col]) => board[row][col] !== 0)
+      .map(([row, col]) => row * SIZE + col)
+  );
   for (let idx = 0; idx < inputs.length; idx++) {
     const inp = inputs[idx];
     if (inp.disabled) continue;
-    inp.className = 'sudoku-cell';
-    if (incorrect.has(idx)) {
-      inp.className = 'sudoku-cell incorrect';
-    }
+    inp.classList.toggle('incorrect', wrongEntries.has(idx));
   }
-  if (incorrect.size === 0) {
+  if (wrongEntries.size > 0) {
+    msg.style.color = '#d32f2f';
+    msg.innerText = 'Some cells are incorrect.';
+  } else if (hasEmptyCells) {
     msg.style.color = '#388e3c';
-    msg.innerText = 'Congratulations! You solved it!';
+    msg.innerText = 'No mistakes so far, keep going!';
+  } else {
+    msg.style.color = '#388e3c';
     if (!gameCompleted) {
       gameCompleted = true;
       window.clearInterval(timerInterval);
       updateTimer();
-      document.getElementById('completion-time').innerText = formatTime(elapsedSeconds());
+      const finishTime = formatTime(elapsedSeconds());
+      const hintWord = hintsUsed === 1 ? 'hint' : 'hints';
+      msg.innerText = `Congratulations! You solved it in ${finishTime} with ${hintsUsed} ${hintWord}!`;
+      document.getElementById('completion-time').innerText = finishTime;
+      document.getElementById('completion-hints').innerText = String(hintsUsed);
       document.getElementById('player-name').value = '';
       document.getElementById('score-dialog').showModal();
       document.getElementById('player-name').focus();
     }
-  } else {
-    msg.style.color = '#d32f2f';
-    msg.innerText = 'Some cells are incorrect.';
   }
 }
 
@@ -236,6 +349,8 @@ window.addEventListener('load', () => {
   document.getElementById('new-game').addEventListener('click', newGame);
   document.getElementById('get-hint').addEventListener('click', getHint);
   document.getElementById('check-solution').addEventListener('click', checkSolution);
+  document.getElementById('theme-toggle').addEventListener('click', toggleTheme);
+  initTheme();
   document.getElementById('score-form').addEventListener('submit', (event) => {
     event.preventDefault();
     const name = document.getElementById('player-name').value.trim();

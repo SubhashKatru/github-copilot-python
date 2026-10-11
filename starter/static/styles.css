@@ -19,10 +19,15 @@
     --button-hover-bg: #1565c0;
     --button-text: #ffffff;
     --message-text: #b91c1c;
+    --cell-conflict-bg: #fecaca;
+    --cell-conflict-border: #b91c1c;
+    --cell-conflict-text: #7f1d1d;
+    --cell-hint-border: #15803d;
+    color-scheme: light;
 }
 
 @media (prefers-color-scheme: dark) {
-    :root {
+    :root:not([data-theme="light"]) {
         --page-bg: #0f172a;
         --page-text: #e2e8f0;
         --board-bg: #111827;
@@ -43,7 +48,41 @@
         --button-hover-bg: #3b82f6;
         --button-text: #0f172a;
         --message-text: #fca5a5;
+        --cell-conflict-bg: #7f1d1d;
+        --cell-conflict-border: #fca5a5;
+        --cell-conflict-text: #fee2e2;
+        --cell-hint-border: #86efac;
+        color-scheme: dark;
     }
+}
+
+/* Manual dark theme, set by the toggle button (data-theme on <html>). */
+:root[data-theme="dark"] {
+    --page-bg: #0f172a;
+    --page-text: #e2e8f0;
+    --board-bg: #111827;
+    --board-border: #e2e8f0;
+    --grid-line: #cbd5e1;
+    --subgrid-a: #1e293b;
+    --subgrid-b: #334155;
+    --cell-bg: #0f172a;
+    --cell-text: #f8fafc;
+    --cell-focus-ring: #93c5fd;
+    --cell-focus-bg: #1d4ed8;
+    --cell-prefilled-bg: #374151;
+    --cell-prefilled-text: #f8fafc;
+    --cell-error-bg: #7f1d1d;
+    --cell-error-border: #fca5a5;
+    --cell-error-text: #fee2e2;
+    --button-bg: #60a5fa;
+    --button-hover-bg: #3b82f6;
+    --button-text: #0f172a;
+    --message-text: #fca5a5;
+    --cell-conflict-bg: #7f1d1d;
+    --cell-conflict-border: #fca5a5;
+    --cell-conflict-text: #fee2e2;
+    --cell-hint-border: #86efac;
+    color-scheme: dark;
 }
 
 body {
@@ -75,12 +114,12 @@ h1 {
 
 .sudoku-cell {
     box-sizing: border-box;
-    width: 40px;
-    height: 40px;
+    width: clamp(30px, 9.5vw, 40px);
+    height: clamp(30px, 9.5vw, 40px);
     border: 1px solid var(--grid-line);
     text-align: center;
-    font-size: 20px;
-    line-height: 38px;
+    font-size: clamp(16px, 4.8vw, 20px);
+    line-height: 1;
     padding: 0;
     margin: 0;
     outline: none;
@@ -119,6 +158,18 @@ h1 {
     background: var(--cell-error-bg);
     color: var(--cell-error-text);
     box-shadow: inset 0 0 0 2px var(--cell-error-border);
+}
+
+.sudoku-row .sudoku-cell.conflict {
+    /* !important so the conflict colour beats the 3x3 block-tone selectors above */
+    background: var(--cell-conflict-bg) !important;
+    color: var(--cell-conflict-text);
+    box-shadow: inset 0 0 0 2px var(--cell-conflict-border);
+    text-decoration: underline;
+}
+
+.sudoku-cell.hint {
+    box-shadow: inset 0 0 0 2px var(--cell-hint-border);
 }
 
 .sudoku-cell:nth-child(3n) {

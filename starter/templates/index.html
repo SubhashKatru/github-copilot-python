@@ -1,8 +1,18 @@
 <!doctype html>
-<html>
+<html lang="en">
 <head>
   <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Sudoku Game</title>
+  <script>
+    // Apply the saved theme before first paint to avoid a light/dark flash.
+    try {
+      const savedTheme = localStorage.getItem('sudokuTheme');
+      if (savedTheme === 'dark' || savedTheme === 'light') {
+        document.documentElement.setAttribute('data-theme', savedTheme);
+      }
+    } catch (error) { /* storage unavailable: fall back to OS preference */ }
+  </script>
   <link rel="stylesheet" href="/static/styles.css">
 </head>
 <body>
@@ -12,6 +22,7 @@
     <button id="new-game">New Game</button>
     <button id="get-hint">Hint</button>
     <button id="check-solution">Check Solution</button>
+    <button id="theme-toggle" type="button" aria-pressed="false">Dark mode</button>
     <label for="difficulty">Difficulty</label>
     <select id="difficulty" name="difficulty">
       <option value="Easy">Easy</option>
@@ -46,7 +57,7 @@
   <dialog id="score-dialog" aria-labelledby="score-dialog-title">
     <form id="score-form">
       <h2 id="score-dialog-title">Puzzle complete!</h2>
-      <p>Your time: <strong id="completion-time">00:00</strong></p>
+      <p>Your time: <strong id="completion-time">00:00</strong> | Hints used: <strong id="completion-hints">0</strong></p>
       <label for="player-name">Player name</label>
       <input id="player-name" name="player-name" type="text" maxlength="30" required autocomplete="name">
       <div class="dialog-actions">

@@ -2,5 +2,8 @@
 .DS_Store
 Thumbs.db
 
-# Ignore Python virtual environment
+# Ignore Python virtual environment and caches
 .venv/
+__pycache__/
+*.pyc
+.pytest_cache/

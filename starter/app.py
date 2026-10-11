@@ -1,5 +1,6 @@
 # Evaluated Copilot suggestion: Copilot recommended a server-side session-backed game store with game IDs.
-# Rejected: Kept the Flask backend stateless and delegated all active board state and persistence to client-side localStorage.
+# Rejected: per-player game IDs and session storage. This single-player local app keeps one in-process CURRENT puzzle
+# (module-level dict) for /check and /hint; the browser holds the player's board and the Top 10 scores in localStorage.
 
 """Flask application factory for the Sudoku game."""
 
